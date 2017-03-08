@@ -3,10 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="6dp"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:id="@+id/profile_list_layout">
 
-    <ImageView
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+    <com.android.volley.toolbox.NetworkImageView
         android:id="@+id/image_list"
         android:layout_width="70dp"
         android:layout_height="70dp"
@@ -17,8 +22,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="6dp"
-        android:layout_gravity="center_vertical"
+        android:layout_gravity="center"
         android:textAppearance="?attr/textAppearanceListItem"
         android:text="ProfileName"
-        android:textSize="20sp"/>
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_gravity="bottom"
+        android:background="?android:attr/listDivider"/>
+
+
 </LinearLayout>

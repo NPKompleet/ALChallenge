@@ -18,6 +18,8 @@ import android.view.MenuItem;
  */
 public class ProfileDetailActivity extends AppCompatActivity {
 
+    public static Profile profile;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,12 +27,19 @@ public class ProfileDetailActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
 
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                /*Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+
+                //Long id= getIntent().getLongExtra((ProfileDetailFragment.ARG_ITEM_ID), 0);
+                Intent i= new Intent(Intent.ACTION_SEND);
+                i.setType("text/plain");
+                i.putExtra(Intent.EXTRA_TEXT, "Check out this awesome developer @"+profile.mProfileName+", "+profile.mProfileUrl);
+                startActivity(i);
             }
         });
 
@@ -53,8 +62,10 @@ public class ProfileDetailActivity extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(ProfileDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(ProfileDetailFragment.ARG_ITEM_ID));
+            /*arguments.putString(ProfileDetailFragment.ARG_ITEM_ID,
+                    getIntent().getStringExtra(ProfileDetailFragment.ARG_ITEM_ID));*/
+            arguments.putLong(ProfileDetailFragment.ARG_ITEM_ID,
+                    getIntent().getLongExtra((ProfileDetailFragment.ARG_ITEM_ID), 0));
             ProfileDetailFragment fragment = new ProfileDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()

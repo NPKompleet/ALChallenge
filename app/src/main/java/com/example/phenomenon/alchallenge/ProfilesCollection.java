@@ -1,5 +1,7 @@
 package com.example.phenomenon.alchallenge;
 
+import android.graphics.Bitmap;
+
 import com.example.phenomenon.alchallenge.dummy.DummyContent;
 
 import java.util.ArrayList;
@@ -18,4 +20,6 @@ public class ProfilesCollection {
 
     //maps each profile to its id
     public static final Map<Long, Profile> ITEM_MAP = new HashMap<Long, Profile>();
+
+    public static final Map<Long, Bitmap> PIC_MAP = new HashMap<Long, Bitmap>();
 }
