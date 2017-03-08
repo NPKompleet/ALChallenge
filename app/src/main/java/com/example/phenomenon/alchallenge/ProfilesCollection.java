@@ -21,5 +21,4 @@ public class ProfilesCollection {
     //maps each profile to its id
     public static final Map<Long, Profile> ITEM_MAP = new HashMap<Long, Profile>();
 
-    public static final Map<Long, Bitmap> PIC_MAP = new HashMap<Long, Bitmap>();
 }

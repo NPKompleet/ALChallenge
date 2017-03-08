@@ -32,13 +32,10 @@ public class ProfileDetailActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
 
-                //Long id= getIntent().getLongExtra((ProfileDetailFragment.ARG_ITEM_ID), 0);
                 Intent i= new Intent(Intent.ACTION_SEND);
                 i.setType("text/plain");
-                i.putExtra(Intent.EXTRA_TEXT, "Check out this awesome developer @"+profile.mProfileName+", "+profile.mProfileUrl);
+                i.putExtra(Intent.EXTRA_TEXT, "Check out this awesome developer @"+profile.getmProfileName()+", "+profile.getmProfileUrl());
                 startActivity(i);
             }
         });
@@ -62,8 +59,7 @@ public class ProfileDetailActivity extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            /*arguments.putString(ProfileDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(ProfileDetailFragment.ARG_ITEM_ID));*/
+
             arguments.putLong(ProfileDetailFragment.ARG_ITEM_ID,
                     getIntent().getLongExtra((ProfileDetailFragment.ARG_ITEM_ID), 0));
             ProfileDetailFragment fragment = new ProfileDetailFragment();

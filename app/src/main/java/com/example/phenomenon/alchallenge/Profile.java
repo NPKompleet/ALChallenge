@@ -5,10 +5,10 @@ package com.example.phenomenon.alchallenge;
  */
 
 public class Profile {
-    public Long mId;
-    public String mImgUrl;
-    public String mProfileName;
-    public String mProfileUrl;
+    private Long mId;
+    private String mImgUrl;
+    private String mProfileName;
+    private String mProfileUrl;
 
     //Constructor for each profile
     public Profile(Long id, String img, String login, String htmlUrl){
@@ -16,6 +16,22 @@ public class Profile {
         mImgUrl = img;
         mProfileName= login;
         mProfileUrl= htmlUrl;
+    }
+
+    public Long getmId() {
+        return mId;
+    }
+
+    public String getmImgUrl() {
+        return mImgUrl;
+    }
+
+    public String getmProfileName() {
+        return mProfileName;
+    }
+
+    public String getmProfileUrl() {
+        return mProfileUrl;
     }
 
     //a string representation of the class

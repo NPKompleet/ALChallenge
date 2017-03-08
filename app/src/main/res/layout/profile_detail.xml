@@ -31,7 +31,8 @@
         android:layout_gravity="center_horizontal"
         android:textSize="20sp"
         android:autoLink="web"
-        android:linksClickable="false" />
+        android:textColorLink="#000000"
+        android:linksClickable="true" />
 
 
 </LinearLayout>

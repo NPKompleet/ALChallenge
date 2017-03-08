@@ -53,10 +53,6 @@ public class ProfileListActivity extends AppCompatActivity {
      */
     private boolean mTwoPane;
     SimpleItemRecyclerViewAdapter adp;
-    public static List<Profile> PROFILES;
-    public static Map<Long, Profile> PROFILE_MAP;
-    public static Map<Long, Bitmap> PIC_MAP;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,9 +67,9 @@ public class ProfileListActivity extends AppCompatActivity {
         View recyclerView = findViewById(R.id.profile_list);
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
-        /*PROFILES = new ArrayList<Profile>();
-        PROFILE_MAP = new HashMap<Long, Profile>();
-        PIC_MAP = new HashMap<Long, Bitmap>();*/
+
+        //getApiData();
+        ProfilesCollection.ITEMS.clear();
         fetchJSON();
 
         if (findViewById(R.id.profile_detail_container) != null) {
@@ -86,6 +82,52 @@ public class ProfileListActivity extends AppCompatActivity {
 
     }
 
+    private void getApiData(){
+        ProfilesCollection.ITEMS.clear();
+        //String url= "https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page=1&per_page=100";
+        String url= "https://api.github.com/search/users?q=%22%22+language:java+location:lagos";
+        JsonObjectRequest jsonRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // the response is already constructed as a JSONObject!
+                        try {
+                            //fetch data
+                            int count= response.getInt("total_count");
+                            int reqCount=1;
+                            if (count > 100){
+                                reqCount= (int) Math.ceil(count/100.0);
+                            }
+                            for (int i=1; i<=reqCount; i++){
+                                String link="https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page="
+                                        +i+"&per_page=100";
+
+                                //fetchJSON(link);
+                            }
+
+                            adp.notifyDataSetChanged();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        error.printStackTrace();
+                    }
+                });
+
+        Volley.newRequestQueue(this).add(jsonRequest);
+
+    }
+
+
+
+
+
     private void fetchJSON(){
         String url= "https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page=1&per_page=100";
         JsonObjectRequest jsonRequest = new JsonObjectRequest
@@ -96,6 +138,10 @@ public class ProfileListActivity extends AppCompatActivity {
                         try {
                             //fetch data
                             int count= response.getInt("total_count");
+                            int reqCount;
+                            if (count > 100){
+                                reqCount= (int) Math.ceil(count/100.0);
+                            }
                             JSONArray query= response.getJSONArray("items");
                             for (int i=0; i<query.length(); i++) {
                                 JSONObject obj= query.getJSONObject(i);
@@ -107,8 +153,6 @@ public class ProfileListActivity extends AppCompatActivity {
                                 Profile profile= new Profile(id,img, pName, pUrl);
                                 ProfilesCollection.ITEMS.add(profile);
                                 ProfilesCollection.ITEM_MAP.put(id, profile);
-                                /*PROFILES.add(profile);
-                                PROFILE_MAP.put(id, profile);*/
                             }
 
 
@@ -127,77 +171,14 @@ public class ProfileListActivity extends AppCompatActivity {
                 });
 
         Volley.newRequestQueue(this).add(jsonRequest);
-        //adp.notifyDataSetChanged();
-
-    }
-
-
-    public void requestImage(final Long id, String url){
-        ImageRequest imgRequest = new ImageRequest(url,
-                new Response.Listener<Bitmap>() {
-                    @Override
-                    public void onResponse(Bitmap response) {
-                        //mImageView.setImageBitmap(response);
-                        ProfilesCollection.PIC_MAP.put(id, response);
-                    }
-                }, 0, 0, ImageView.ScaleType.FIT_XY, Bitmap.Config.ARGB_8888, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                //mImageView.setBackgroundColor(Color.parseColor("#ff0000"));
-                error.printStackTrace();
-            }
-        });
-
-        //Volley.newRequestQueue(this).add(imgRequest);
 
 
     }
-
-
 
 
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        //recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(DummyContent.ITEMS));
-        //block begin
 
-       /* String url= "https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page=1&per_page=100";
-        JsonObjectRequest jsonRequest = new JsonObjectRequest
-                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        // the response is already constructed as a JSONObject!
-                        try {
-                            //fetch data
-                            int count= response.getInt("total_count");
-                            JSONArray query= response.getJSONArray("items");
-                            for (int i=0; i<query.length(); i++) {
-                                JSONObject obj= query.getJSONObject(i);
-                                Long id= obj.getLong("id");
-                                String img= obj.getString("avatar_url");
-                                String pName= obj.getString("login");
-                                String pUrl=obj.getString("html_url");
-                                Profile profile= new Profile(id,img, pName, pUrl);
-                                ProfilesCollection.ITEMS.add(profile);
-                                ProfilesCollection.ITEM_MAP.put(id, profile);
-                            }
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        error.printStackTrace();
-                    }
-                });
-
-        Volley.newRequestQueue(this).add(jsonRequest);*/
-        //end block
-
-        //recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(ProfilesCollection.ITEMS));
         adp= new SimpleItemRecyclerViewAdapter(ProfilesCollection.ITEMS, this);
         recyclerView.setAdapter(adp);
     }
@@ -205,19 +186,16 @@ public class ProfileListActivity extends AppCompatActivity {
     public class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
-        //private final List<DummyContent.DummyItem> mValues;
-        private final List<Profile> mValues;
+
+        private final List<Profile> profileList;
         private Context context;
         private ImageLoader imageLoader;
 
 
-        /*public SimpleItemRecyclerViewAdapter(List<DummyContent.DummyItem> items) {
-            mValues = items;
-        }*/
 
         public SimpleItemRecyclerViewAdapter(List<Profile> items, Context context) {
             super();
-            mValues = items;
+            profileList = items;
             this.context= context;
         }
 
@@ -230,19 +208,15 @@ public class ProfileListActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mItem = mValues.get(position);
-            //holder.mIdView.setText(mValues.get(position).id);
-            holder.mContentView.setText(mValues.get(position).mProfileName);
-            //holder.mImgView.setImageBitmap(ProfilesCollection.PIC_MAP.get(mValues.get(position).mId));
-
-            //get image
-            //String url = mValues.get(position).mImgUrl;
+            holder.mItem = profileList.get(position);
+            //holder.mIdView.setText(profileList.get(position).id);
+            holder.mContentView.setText(profileList.get(position).getmProfileName());
 
             //Loading image from url
             imageLoader = MyImageRequest.getInstance(context).getImageLoader();
-            imageLoader.get(mValues.get(position).mImgUrl, ImageLoader.getImageListener(holder.mImgView,
+            imageLoader.get(profileList.get(position).getmImgUrl(), ImageLoader.getImageListener(holder.mImgView,
                     R.drawable.ic_person_black_24dp, android.R.drawable.ic_dialog_alert));
-            holder.mImgView.setImageUrl(mValues.get(position).mImgUrl, imageLoader);
+            holder.mImgView.setImageUrl(profileList.get(position).getmImgUrl(), imageLoader);
 
 
 
@@ -252,8 +226,9 @@ public class ProfileListActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     if (mTwoPane) {
                         Bundle arguments = new Bundle();
-                        //arguments.putString(ProfileDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-                        arguments.putLong(ProfileDetailFragment.ARG_ITEM_ID, holder.mItem.mId);
+
+                        //puts in the id to be used to create ProfileDetailFragment
+                        arguments.putLong(ProfileDetailFragment.ARG_ITEM_ID, holder.mItem.getmId());
                         ProfileDetailFragment fragment = new ProfileDetailFragment();
                         fragment.setArguments(arguments);
                         getSupportFragmentManager().beginTransaction()
@@ -262,26 +237,23 @@ public class ProfileListActivity extends AppCompatActivity {
                     } else {
                         Context context = v.getContext();
                         Intent intent = new Intent(context, ProfileDetailActivity.class);
-                        intent.putExtra(ProfileDetailFragment.ARG_ITEM_ID, holder.mItem.mId);
+                        intent.putExtra(ProfileDetailFragment.ARG_ITEM_ID, holder.mItem.getmId());
 
                         context.startActivity(intent);
                     }
                 }
             });
 
-            //notifyDataSetChanged();
         }
 
         @Override
         public int getItemCount() {
-            return mValues.size();
+            return profileList.size();
         }
 
         public class ViewHolder extends RecyclerView.ViewHolder {
             public final View mView;
-            //public final TextView mIdView;
-            //public final TextView mContentView;
-            //public DummyContent.DummyItem mItem;
+
             public final NetworkImageView mImgView;
             public final TextView mContentView;
             public Profile mItem;
@@ -289,8 +261,7 @@ public class ProfileListActivity extends AppCompatActivity {
             public ViewHolder(View view) {
                 super(view);
                 mView = view;
-                //mIdView = (TextView) view.findViewById(R.id.id);
-                //mContentView = (TextView) view.findViewById(R.id.content);
+
                 mImgView = (NetworkImageView) view.findViewById(R.id.image_list);
                 mContentView = (TextView) view.findViewById(R.id.profile_name);
 
@@ -303,8 +274,5 @@ public class ProfileListActivity extends AppCompatActivity {
         }
     }
 
-    /*protected void onStop(){
-        ProfilesCollection.ITEMS.clear();
-        ProfilesCollection.ITEM_MAP.clear();
-    }*/
+
 }
