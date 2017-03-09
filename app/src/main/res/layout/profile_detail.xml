@@ -31,6 +31,7 @@
         android:layout_gravity="center_horizontal"
         android:textSize="20sp"
         android:autoLink="web"
+        android:textStyle="normal|bold"
         android:textColorLink="#000000"
         android:linksClickable="true" />
 
