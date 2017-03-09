@@ -35,7 +35,7 @@ public class ProfileDetailActivity extends AppCompatActivity {
 
                 Intent i= new Intent(Intent.ACTION_SEND);
                 i.setType("text/plain");
-                i.putExtra(Intent.EXTRA_TEXT, "Check out this awesome developer @"+profile.getmProfileName()+", "+profile.getmProfileUrl());
+                i.putExtra(Intent.EXTRA_TEXT, "Check out this awesome developer @"+ProfileDetailActivity.profile.getmProfileName()+", "+profile.getmProfileUrl());
                 startActivity(i);
             }
         });
@@ -43,7 +43,7 @@ public class ProfileDetailActivity extends AppCompatActivity {
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(false);
         }
 
         // savedInstanceState is non-null when there is fragment state
@@ -70,19 +70,5 @@ public class ProfileDetailActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == android.R.id.home) {
-            // This ID represents the Home or Up button. In the case of this
-            // activity, the Up button is shown. For
-            // more details, see the Navigation pattern on Android Design:
-            //
-            // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-            //
-            navigateUpTo(new Intent(this, ProfileListActivity.class));
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
+
 }

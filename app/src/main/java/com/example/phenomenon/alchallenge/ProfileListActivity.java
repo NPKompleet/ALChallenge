@@ -1,5 +1,6 @@
 package com.example.phenomenon.alchallenge;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -11,14 +12,18 @@ import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
@@ -53,6 +58,9 @@ public class ProfileListActivity extends AppCompatActivity {
      */
     private boolean mTwoPane;
     SimpleItemRecyclerViewAdapter adp;
+    ProgressDialog dialog;
+    RequestQueue queue;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,14 +71,16 @@ public class ProfileListActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
+        dialog= ProgressDialog.show(this, "Hold on", "Fetching some geek profiles", true, false);
 
         View recyclerView = findViewById(R.id.profile_list);
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
-
-        //getApiData();
+        queue= Volley.newRequestQueue(this);
         ProfilesCollection.ITEMS.clear();
-        fetchJSON();
+        getApiData();
+
+        //fetchJSON();
 
         if (findViewById(R.id.profile_detail_container) != null) {
             // The detail container view will be present only in the
@@ -82,30 +92,82 @@ public class ProfileListActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Adds the menu
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        //menu item clicks handled here
+        int id = item.getItemId();
+
+        if (id == R.id.action_about) {
+            Toast.makeText(this, "Made for Andela Android Learning Community", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    /*The Github API only returns a maximum of 100 profiles per page
+    This function gets the number of developers by checking the "total_count" key,
+    then calls the fetchMoreData function to make more requests. All requests are placed on a queue*/
+
     private void getApiData(){
-        ProfilesCollection.ITEMS.clear();
-        //String url= "https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page=1&per_page=100";
-        String url= "https://api.github.com/search/users?q=%22%22+language:java+location:lagos";
+        String url= "https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page=1&per_page=100";
+        //String url= "https://api.github.com/search/users?q=%22%22+language:java+location:lagos";
         JsonObjectRequest jsonRequest = new JsonObjectRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        // the response is already constructed as a JSONObject!
+                        // the response is a JSONObject
                         try {
                             //fetch data
-                            int count= response.getInt("total_count");
-                            int reqCount=1;
+                            int count= response.getInt("total_count"); //total num of developers
+                            int reqCount=1; //number of requests to be made
+                            JSONArray query= response.getJSONArray("items");
+                            for (int i=0; i<query.length(); i++) {
+                                JSONObject obj= query.getJSONObject(i);
+                                Long id= obj.getLong("id");
+                                String img= obj.getString("avatar_url");
+                                String pName= obj.getString("login");
+                                String pUrl=obj.getString("html_url");
+
+                                Profile profile= new Profile(id,img, pName, pUrl);
+                                ProfilesCollection.ITEMS.add(profile);
+                                ProfilesCollection.ITEM_MAP.put(id, profile);
+                            }
+
                             if (count > 100){
                                 reqCount= (int) Math.ceil(count/100.0);
+
+
+                                //requests for more pages if number of developers exceeds 100
+                                for (int i=2; i<=reqCount; i++){
+                                    String link="https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page="
+                                            +i+"&per_page=100";
+
+                                    fetchMoreData(link, i, reqCount);
+                                }
                             }
+
+                            /*
                             for (int i=1; i<=reqCount; i++){
                                 String link="https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page="
                                         +i+"&per_page=100";
 
-                                //fetchJSON(link);
-                            }
+                                fetchJSON(link, i, reqCount);
+                            }*/
 
-                            adp.notifyDataSetChanged();
+                            //when fetching is done only once
+                            if (reqCount==1){
+                                adp.notifyDataSetChanged();
+                                dialog.dismiss();
+                            }
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -120,28 +182,23 @@ public class ProfileListActivity extends AppCompatActivity {
                     }
                 });
 
-        Volley.newRequestQueue(this).add(jsonRequest);
+        //Volley.newRequestQueue(this).add(jsonRequest);
+
+        //add request to request queue
+        queue.add(jsonRequest);
 
     }
 
-
-
-
-
-    private void fetchJSON(){
-        String url= "https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page=1&per_page=100";
+    //fetches pages 2 and above if number of devolopers exceed 100
+    private void fetchMoreData(String url, final int i, final int maximum){
+        //String url= "https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page=2&per_page=100";
         JsonObjectRequest jsonRequest = new JsonObjectRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         // the response is already constructed as a JSONObject!
                         try {
-                            //fetch data
-                            int count= response.getInt("total_count");
-                            int reqCount;
-                            if (count > 100){
-                                reqCount= (int) Math.ceil(count/100.0);
-                            }
+
                             JSONArray query= response.getJSONArray("items");
                             for (int i=0; i<query.length(); i++) {
                                 JSONObject obj= query.getJSONObject(i);
@@ -149,7 +206,7 @@ public class ProfileListActivity extends AppCompatActivity {
                                 String img= obj.getString("avatar_url");
                                 String pName= obj.getString("login");
                                 String pUrl=obj.getString("html_url");
-                                //requestImage(id, img);
+
                                 Profile profile= new Profile(id,img, pName, pUrl);
                                 ProfilesCollection.ITEMS.add(profile);
                                 ProfilesCollection.ITEM_MAP.put(id, profile);
@@ -159,8 +216,12 @@ public class ProfileListActivity extends AppCompatActivity {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                        //when fetching is completed
+                        if (i==maximum){
+                            adp.notifyDataSetChanged();
+                            dialog.dismiss();
+                        }
 
-                        adp.notifyDataSetChanged();
                     }
                 }, new Response.ErrorListener() {
 
@@ -170,7 +231,8 @@ public class ProfileListActivity extends AppCompatActivity {
                     }
                 });
 
-        Volley.newRequestQueue(this).add(jsonRequest);
+
+        queue.add(jsonRequest);
 
 
     }
@@ -209,7 +271,6 @@ public class ProfileListActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.mItem = profileList.get(position);
-            //holder.mIdView.setText(profileList.get(position).id);
             holder.mContentView.setText(profileList.get(position).getmProfileName());
 
             //Loading image from url
