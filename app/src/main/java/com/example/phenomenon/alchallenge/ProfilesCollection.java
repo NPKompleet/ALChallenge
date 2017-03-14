@@ -1,8 +1,5 @@
 package com.example.phenomenon.alchallenge;
 
-import android.graphics.Bitmap;
-
-import com.example.phenomenon.alchallenge.dummy.DummyContent;
 
 import java.util.ArrayList;
 import java.util.HashMap;

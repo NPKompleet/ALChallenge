@@ -12,7 +12,7 @@ import android.widget.Toast;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
-import com.example.phenomenon.alchallenge.dummy.DummyContent;
+
 
 /**
  * A fragment representing a single Profile detail screen.

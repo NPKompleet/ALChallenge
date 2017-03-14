@@ -33,7 +33,6 @@ import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.Volley;
-import com.example.phenomenon.alchallenge.dummy.DummyContent;
 
 import org.json.JSONArray;
 import org.json.JSONException;
