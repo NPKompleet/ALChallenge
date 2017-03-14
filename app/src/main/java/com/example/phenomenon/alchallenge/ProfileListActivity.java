@@ -4,6 +4,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -50,7 +52,8 @@ import java.util.Map;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class ProfileListActivity extends AppCompatActivity {
+
+public class ProfileListActivity extends AppCompatActivity{
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -60,6 +63,8 @@ public class ProfileListActivity extends AppCompatActivity {
     SimpleItemRecyclerViewAdapter adp;
     ProgressDialog dialog;
     RequestQueue queue;
+    boolean dataLoaded;
+
 
 
     @Override
@@ -70,6 +75,7 @@ public class ProfileListActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
+        dataLoaded= false;
 
         dialog= ProgressDialog.show(this, "Hold on", "Fetching some geek profiles", true, false);
 
@@ -78,9 +84,7 @@ public class ProfileListActivity extends AppCompatActivity {
         setupRecyclerView((RecyclerView) recyclerView);
         queue= Volley.newRequestQueue(this);
         ProfilesCollection.ITEMS.clear();
-        getApiData();
-
-        //fetchJSON();
+        checkConnection();
 
         if (findViewById(R.id.profile_detail_container) != null) {
             // The detail container view will be present only in the
@@ -92,25 +96,37 @@ public class ProfileListActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Adds the menu
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+
+    //recyclerview setup
+    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
+
+        adp= new SimpleItemRecyclerViewAdapter(ProfilesCollection.ITEMS, this);
+        recyclerView.setAdapter(adp);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        //menu item clicks handled here
-        int id = item.getItemId();
+    //check for internet connection and get data if available
+    private void checkConnection() {
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
 
-        if (id == R.id.action_about) {
-            Toast.makeText(this, "Made for Andela Android Learning Community", Toast.LENGTH_SHORT).show();
-            return true;
+        if (isConnected) {
+            if (dataLoaded) {
+                Toast.makeText(this, "Connection restored", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+                ProfilesCollection.ITEMS.clear();
+                dialog.show();
+                getApiData();
+            }
+        }else{
+            Toast.makeText(this, "No Internet Connection", Toast.LENGTH_LONG).show();
+            dialog.setCancelable(true);
         }
 
-        return super.onOptionsItemSelected(item);
     }
+
+
 
 
     /*The Github API only returns a maximum of 100 profiles per page
@@ -145,8 +161,8 @@ public class ProfileListActivity extends AppCompatActivity {
                             if (count > 100){
                                 reqCount= (int) Math.ceil(count/100.0);
 
-
                                 //requests for more pages if number of developers exceeds 100
+                                //from pages 2 and above
                                 for (int i=2; i<=reqCount; i++){
                                     String link="https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page="
                                             +i+"&per_page=100";
@@ -155,22 +171,20 @@ public class ProfileListActivity extends AppCompatActivity {
                                 }
                             }
 
-                            /*
-                            for (int i=1; i<=reqCount; i++){
-                                String link="https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page="
-                                        +i+"&per_page=100";
-
-                                fetchJSON(link, i, reqCount);
-                            }*/
 
                             //when fetching is done only once
                             if (reqCount==1){
                                 adp.notifyDataSetChanged();
                                 dialog.dismiss();
+                                dataLoaded= true; //data was loaded successfully
                             }
 
                         } catch (JSONException e) {
                             e.printStackTrace();
+                            dialog.dismiss();
+                            Toast.makeText(ProfileListActivity.this, "Something went wrong", Toast.LENGTH_LONG).show();
+                            ProfilesCollection.ITEMS.clear();
+                            dataLoaded=false;
                         }
 
                     }
@@ -190,13 +204,13 @@ public class ProfileListActivity extends AppCompatActivity {
     }
 
     //fetches pages 2 and above if number of devolopers exceed 100
-    private void fetchMoreData(String url, final int i, final int maximum){
+    private void fetchMoreData(String url, final int x, final int maximum){
         //String url= "https://api.github.com/search/users?q=%22%22+language:java+location:lagos&page=2&per_page=100";
         JsonObjectRequest jsonRequest = new JsonObjectRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        // the response is already constructed as a JSONObject!
+                        // get JSON response
                         try {
 
                             JSONArray query= response.getJSONArray("items");
@@ -212,15 +226,22 @@ public class ProfileListActivity extends AppCompatActivity {
                                 ProfilesCollection.ITEM_MAP.put(id, profile);
                             }
 
+                            //when fetching is completed
+                            if (x==maximum){
+                                adp.notifyDataSetChanged();
+                                dialog.dismiss();
+                                dataLoaded= true; //data was loaded sucessfully
+                            }
+
 
                         } catch (JSONException e) {
                             e.printStackTrace();
-                        }
-                        //when fetching is completed
-                        if (i==maximum){
-                            adp.notifyDataSetChanged();
                             dialog.dismiss();
+                            Toast.makeText(ProfileListActivity.this, "Something went wrong", Toast.LENGTH_LONG).show();
+                            ProfilesCollection.ITEMS.clear();
+                            dataLoaded=false;
                         }
+
 
                     }
                 }, new Response.ErrorListener() {
@@ -239,11 +260,6 @@ public class ProfileListActivity extends AppCompatActivity {
 
 
 
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-
-        adp= new SimpleItemRecyclerViewAdapter(ProfilesCollection.ITEMS, this);
-        recyclerView.setAdapter(adp);
-    }
 
     public class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
@@ -272,13 +288,19 @@ public class ProfileListActivity extends AppCompatActivity {
         public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.mItem = profileList.get(position);
             holder.mContentView.setText(profileList.get(position).getmProfileName());
+            String url = holder.mItem.getmImgUrl();
 
             //Loading image from url
             imageLoader = MyImageRequest.getInstance(context).getImageLoader();
-            imageLoader.get(profileList.get(position).getmImgUrl(), ImageLoader.getImageListener(holder.mImgView,
+            /*imageLoader.get(profileList.get(position).getmImgUrl(), ImageLoader.getImageListener(holder.mImgView,
+                    R.drawable.ic_person_black_24dp, android.R.drawable.ic_dialog_alert));*/
+            imageLoader.get(url, ImageLoader.getImageListener(holder.mImgView,
                     R.drawable.ic_person_black_24dp, android.R.drawable.ic_dialog_alert));
-            holder.mImgView.setImageUrl(profileList.get(position).getmImgUrl(), imageLoader);
 
+            //holder.mImgView.setImageUrl(profileList.get(position).getmImgUrl(), imageLoader);
+            if (url.equals(profileList.get(position).getmImgUrl())) {
+                holder.mImgView.setImageUrl(url, imageLoader);
+            }
 
 
 
@@ -335,5 +357,32 @@ public class ProfileListActivity extends AppCompatActivity {
         }
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Adds the menu
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        //menu item clicks handled here
+        int id = item.getItemId();
+        switch (id){
+            case R.id.action_refresh:
+                //refresh the activity
+                Intent intent= getIntent();
+                finish();
+                startActivity(intent);
+                return true;
+
+            case R.id.action_about:
+                Toast.makeText(this, "Made for Andela Android Learning Community", Toast.LENGTH_SHORT).show();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
 }

@@ -5,14 +5,15 @@
     tools:context=".ProfileListActivity">
 
     <item
-        android:id="@+id/action_settings"
-        android:title="Settings"
+        android:id="@+id/action_refresh"
+        android:title="Refresh"
         android:orderInCategory="100"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_autorenew_black_24dp" />
 
     <item
         android:id="@+id/action_about"
         android:title="About"
         android:orderInCategory="100"
-        app:showAsAction="never" />
+        app:showAsAction="never"/>
 </menu>

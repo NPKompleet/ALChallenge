@@ -32,7 +32,7 @@ public class ProfileDetailActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                //creates the share intent
                 Intent i= new Intent(Intent.ACTION_SEND);
                 i.setType("text/plain");
                 i.putExtra(Intent.EXTRA_TEXT, "Check out this awesome developer @"+ProfileDetailActivity.profile.getmProfileName()+", "+profile.getmProfileUrl());
@@ -59,7 +59,8 @@ public class ProfileDetailActivity extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-
+            //sends data to be handled by ProfileDetailFragment
+            //sends the intent as arguments to the fragment
             arguments.putLong(ProfileDetailFragment.ARG_ITEM_ID,
                     getIntent().getLongExtra((ProfileDetailFragment.ARG_ITEM_ID), 0));
             ProfileDetailFragment fragment = new ProfileDetailFragment();

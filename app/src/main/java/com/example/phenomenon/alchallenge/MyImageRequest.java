@@ -18,7 +18,7 @@ import com.android.volley.toolbox.ImageLoader;
  */
 
 
-
+// class for pulling the images
 public class MyImageRequest{
 
     private static MyImageRequest myImageRequest;
@@ -30,10 +30,11 @@ public class MyImageRequest{
         this.context = context;
         this.requestQueue = getRequestQueue();
 
+        //for loading and caching the images based on the image url
         imageLoader = new ImageLoader(requestQueue,
                 new ImageLoader.ImageCache() {
                     private final LruCache<String, Bitmap>
-                            cache = new LruCache<String, Bitmap>(20);
+                            cache = new LruCache<String, Bitmap>(100);
 
                     @Override
                     public Bitmap getBitmap(String url) {
@@ -46,6 +47,7 @@ public class MyImageRequest{
                     }
                 });
     }
+    //thread safe access
     public static synchronized MyImageRequest getInstance(Context context) {
         if (myImageRequest == null) {
             myImageRequest = new MyImageRequest(context);
